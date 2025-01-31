@@ -138,6 +138,25 @@ public class MemberController {
     }
 
     /**
+     * 특정 유저 정보 조회
+     *
+     * @param id
+     * @return GenericResponse<MemberDto>
+     * @author 손진영
+     * @since 2025.01.31
+     */
+    @GetMapping("/{id}")
+    public GenericResponse<MemberDto> getUser(@PathVariable String id) {
+        Member member = memberService.getMember(id)
+                .orElseThrow(() -> new MemberException(NON_EXISTING_ID));
+
+        return GenericResponse.of(
+                new MemberDto(member),
+                "%s님의 정보".formatted(member.getNickname())
+        );
+    }
+
+    /**
      * Request Authorization Check
      *
      * @return Member
