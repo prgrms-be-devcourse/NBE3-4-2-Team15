@@ -150,7 +150,7 @@ public class MemberController {
      * @author 손진영
      * @since 2025.01.31
      */
-    @GetMapping("/{username}")
+    @GetMapping("/{id}")
     public GenericResponse<MemberDto> getUser(@PathVariable long id) {
         Member member = memberService.getMember(id)
                 .orElseThrow(() -> new MemberException(NON_EXISTING_ID));
@@ -169,7 +169,7 @@ public class MemberController {
      * @author 손진영
      * @since 2025.01.31
      */
-    @GetMapping("/{username}/review")
+    @GetMapping("/{id}/review")
     public GenericResponse<List<ReviewsDTO>> getUserReview(@PathVariable long id) {
         Member member = memberService.getMember(id)
                 .orElseThrow(() -> new MemberException(NON_EXISTING_ID));
