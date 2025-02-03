@@ -192,4 +192,26 @@ public class ReviewService {
 
 
 
+
+    /**
+     * 특정 유저 리뷰 조회
+     *
+     * @param id
+     *
+     * @author 손진영
+     * @since 25.02.03
+     */
+    public List<ReviewsDTO> findByMemberId(long id) {
+        return reviewRepository.findByMemberId(id)
+                .stream()
+                .map(review -> ReviewsDTO.builder()
+                        .id(review.getId())
+                        .bookId(review.getBookId())
+                        .memberId(review.getMemberId())
+                        .content(review.getContent())
+                        .rating(review.getRating())
+                        .recommendCount(review.getRecommendMember().size())
+                        .build())
+                .toList();
+    }
 }

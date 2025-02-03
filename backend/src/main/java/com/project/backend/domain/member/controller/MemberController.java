@@ -7,12 +7,16 @@ import com.project.backend.domain.member.dto.PasswordDto;
 import com.project.backend.domain.member.entity.Member;
 import com.project.backend.domain.member.exception.MemberException;
 import com.project.backend.domain.member.service.MemberService;
+import com.project.backend.domain.review.review.reviewDTO.ReviewsDTO;
+import com.project.backend.domain.review.review.service.ReviewService;
 import com.project.backend.global.response.GenericResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 import static com.project.backend.domain.member.exception.MemberErrorCode.*;
 
@@ -28,6 +32,7 @@ import static com.project.backend.domain.member.exception.MemberErrorCode.*;
 public class MemberController {
     private final MemberService memberService;
     private final HttpServletRequest request;
+    private final ReviewService reviewService;
 
     /**
      * 회원가입 요청
@@ -135,6 +140,46 @@ public class MemberController {
         memberService.delete(member);
 
         return GenericResponse.of("탈퇴 성공");
+    }
+
+    /**
+     * 특정 유저 정보 조회
+     *
+     * @param id
+     * @return GenericResponse<MemberDto>
+     * @author 손진영
+     * @since 2025.01.31
+     */
+    @GetMapping("/{id}")
+    public GenericResponse<MemberDto> getUser(@PathVariable long id) {
+        Member member = memberService.getMember(id)
+                .orElseThrow(() -> new MemberException(NON_EXISTING_ID));
+
+        return GenericResponse.of(
+                new MemberDto(member),
+                "%s님의 정보".formatted(member.getNickname())
+        );
+    }
+
+    /**
+     * 특정 유저 리뷰 조회
+     *
+     * @param id
+     * @return GenericResponse<MemberDto>
+     * @author 손진영
+     * @since 2025.01.31
+     */
+    @GetMapping("/{id}/review")
+    public GenericResponse<List<ReviewsDTO>> getUserReview(@PathVariable long id) {
+        Member member = memberService.getMember(id)
+                .orElseThrow(() -> new MemberException(NON_EXISTING_ID));
+
+        List<ReviewsDTO> reviews =  reviewService.findByMemberId(member.getId());
+
+        return GenericResponse.of(
+                reviews,
+                "%s님의 정보".formatted(member.getNickname())
+        );
     }
 
     /**

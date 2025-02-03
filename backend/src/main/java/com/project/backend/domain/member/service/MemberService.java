@@ -73,6 +73,18 @@ public class MemberService {
     }
 
     /**
+     * 회원 정보 조회
+     *
+     * @param id
+     * @return Optional<Member>
+     * @author 손진영
+     * @since 25. 2. 03.
+     */
+    public Optional<Member> getMember(long id) {
+        return memberRepository.findById(id);
+    }
+
+    /**
      * 회원 정보 수정
      *
      * @param member
