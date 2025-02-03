@@ -70,7 +70,7 @@ public class MemberControllerTest {
                 .andExpect(handler().handlerType(MemberController.class))
                 .andExpect(handler().methodName("join"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(member.getId()))
+                .andExpect(jsonPath("$.data.username").value(member.getUsername()))
                 .andExpect(jsonPath("$.data.nickname").value(member.getNickname()))
                 .andExpect(jsonPath("$.data.email").value(member.getEmail()))
                 .andExpect(jsonPath("$.data.gender").value(member.getGender()))
@@ -233,7 +233,7 @@ public class MemberControllerTest {
                 .andExpect(handler().handlerType(MemberController.class))
                 .andExpect(handler().methodName("login"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data.id").value(member.getId()))
+                .andExpect(jsonPath("$.data.username").value(member.getUsername()))
                 .andExpect(jsonPath("$.data.nickname").value(member.getNickname()))
                 .andExpect(jsonPath("$.data.email").value(member.getEmail()))
                 .andExpect(jsonPath("$.data.gender").value(member.getGender()))
@@ -683,5 +683,47 @@ public class MemberControllerTest {
                 .andExpect(handler().handlerType(MemberController.class))
                 .andExpect(handler().methodName("mine"))
                 .andExpect(status().isBadRequest());
+    }
+
+    /**
+     * 특정 유저 정보 조회
+     *
+     * @throws Exception
+     * @author 손진영
+     * @since 2025.02.03
+     */
+    @Test
+    @DisplayName("특정 유저 정보 조회")
+    void t21() throws Exception {
+        Member member = memberService.getMember("user1").get();
+
+        mvc
+                .perform(get("/members/user1"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.data.username").value(member.getUsername()))
+                .andExpect(jsonPath("$.data.nickname").value(member.getNickname()))
+                .andExpect(jsonPath("$.data.email").value(member.getEmail()))
+                .andExpect(jsonPath("$.data.gender").value(member.getGender()))
+                .andExpect(jsonPath("$.data.birth").value(member.getBirth() == null ? null : member.getBirth().toString()));
+    }
+
+    /**
+     * 특정 유저 정보 조회 시
+     * 404 에러, "존재하지 않는 사용자 입니다." 메세지 출력 검증
+     *
+     * @throws Exception
+     * @author 손진영
+     * @since 2025.02.03
+     */
+    @Test
+    @DisplayName("특정 유저 정보 조회, 없는 username")
+    void t22() throws Exception {
+
+        mvc
+                .perform(get("/members/non"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("존재하지 않는 사용자 입니다."));
     }
 }

@@ -140,14 +140,14 @@ public class MemberController {
     /**
      * 특정 유저 정보 조회
      *
-     * @param id
+     * @param username
      * @return GenericResponse<MemberDto>
      * @author 손진영
      * @since 2025.01.31
      */
-    @GetMapping("/{id}")
-    public GenericResponse<MemberDto> getUser(@PathVariable String id) {
-        Member member = memberService.getMember(id)
+    @GetMapping("/{username}")
+    public GenericResponse<MemberDto> getUser(@PathVariable String username) {
+        Member member = memberService.getMember(username)
                 .orElseThrow(() -> new MemberException(NON_EXISTING_ID));
 
         return GenericResponse.of(
