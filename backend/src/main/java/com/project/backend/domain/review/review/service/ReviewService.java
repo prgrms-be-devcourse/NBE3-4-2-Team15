@@ -119,4 +119,18 @@ public class ReviewService {
         review.setRecommendMember(list);
         reviewRepository.save(review);
     }
+
+    public List<ReviewsDTO> findByMemberId(String username) {
+        return reviewRepository.findByMemberId(username)
+                .stream()
+                .map(review -> ReviewsDTO.builder()
+                        .id(review.getId())
+                        .bookId(review.getBookId())
+                        .memberId(review.getMemberId())
+                        .content(review.getContent())
+                        .rating(review.getRating())
+                        .recommendCount(review.getRecommendMember().size())
+                        .build())
+                .toList();
+    }
 }
