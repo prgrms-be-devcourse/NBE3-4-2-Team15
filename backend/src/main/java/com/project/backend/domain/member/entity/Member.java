@@ -1,11 +1,13 @@
 package com.project.backend.domain.member.entity;
 
+import com.project.backend.domain.review.comment.entity.ReviewComment;
+import com.project.backend.domain.review.review.entity.Review;
 import com.project.backend.global.baseEntity.BaseEntity;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 /**
  *
@@ -22,7 +24,12 @@ import java.time.LocalDate;
 @Builder
 public class Member extends BaseEntity {
     @Id
-    private String id;
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Setter(AccessLevel.PRIVATE)
+    private Long id;
+
+    @Column(unique = true, length = 16)
+    private String username;
 
     private String password;
 
@@ -33,4 +40,10 @@ public class Member extends BaseEntity {
     private String nickname;
 
     private LocalDate birth;
+
+    @ManyToMany
+    private List<Review> recommendReviews;
+
+    @ManyToMany
+    private List<ReviewComment> reviewComments;
 }
