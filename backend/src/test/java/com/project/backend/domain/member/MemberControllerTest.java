@@ -3,6 +3,8 @@ package com.project.backend.domain.member;
 import com.project.backend.domain.member.controller.MemberController;
 import com.project.backend.domain.member.entity.Member;
 import com.project.backend.domain.member.service.MemberService;
+import com.project.backend.domain.review.review.reviewDTO.ReviewsDTO;
+import com.project.backend.domain.review.review.service.ReviewService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +15,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -36,6 +39,8 @@ public class MemberControllerTest {
     @Autowired
     private MemberService memberService;
 
+    @Autowired
+    private ReviewService reviewService;
     /**
      * 회원가입 테스트: 성공적인 회원가입을 검증
      *
@@ -722,6 +727,52 @@ public class MemberControllerTest {
 
         mvc
                 .perform(get("/members/non"))
+                .andDo(print())
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").value("존재하지 않는 사용자 입니다."));
+    }
+
+    /**
+     * 특정 유저 리뷰 조회
+     *
+     * @throws Exception
+     * @author 손진영
+     * @since 2025.02.03
+     */
+    @Test
+    @DisplayName("특정 유저 리뷰 조회")
+    void t23() throws Exception {
+
+        ResultActions resultActions = mvc
+                .perform(get("/members/user1/review"))
+                .andDo(print())
+                .andExpect(status().isOk());
+
+        List<ReviewsDTO> reviews = reviewService.findByMemberId("user1");
+
+        for (int i = 0; i<reviews.size(); i++) {
+            ReviewsDTO review = reviews.get(i);
+            resultActions
+                    .andExpect(jsonPath("$.data[%d].bookId".formatted(i)).value(review.getBookId()))
+                    .andExpect(jsonPath("$.data[%d].memberId".formatted(i)).value(review.getMemberId()))
+                    .andExpect(jsonPath("$.data[%d].content".formatted(i)).value(review.getContent()));
+        }
+    }
+
+    /**
+     * 특정 유저 리뷰 조회 시
+     * 404 에러, "존재하지 않는 사용자 입니다." 메세지 출력 검증
+     *
+     * @throws Exception
+     * @author 손진영
+     * @since 2025.02.03
+     */
+    @Test
+    @DisplayName("특정 유저 정보 조회, 없는 username")
+    void t24() throws Exception {
+
+        mvc
+                .perform(get("/members/non/review"))
                 .andDo(print())
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.message").value("존재하지 않는 사용자 입니다."));
