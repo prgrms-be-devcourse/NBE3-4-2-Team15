@@ -748,7 +748,7 @@ public class MemberControllerTest {
                 .andDo(print())
                 .andExpect(status().isOk());
 
-        List<ReviewsDTO> reviews = reviewService.findByMemberId("user1");
+        List<ReviewsDTO> reviews = reviewService.findByMemberId(2);
 
         for (int i = 0; i<reviews.size(); i++) {
             ReviewsDTO review = reviews.get(i);

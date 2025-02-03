@@ -145,14 +145,14 @@ public class MemberController {
     /**
      * 특정 유저 정보 조회
      *
-     * @param username
+     * @param id
      * @return GenericResponse<MemberDto>
      * @author 손진영
      * @since 2025.01.31
      */
     @GetMapping("/{username}")
-    public GenericResponse<MemberDto> getUser(@PathVariable String username) {
-        Member member = memberService.getMember(username)
+    public GenericResponse<MemberDto> getUser(@PathVariable long id) {
+        Member member = memberService.getMember(id)
                 .orElseThrow(() -> new MemberException(NON_EXISTING_ID));
 
         return GenericResponse.of(
@@ -164,17 +164,17 @@ public class MemberController {
     /**
      * 특정 유저 리뷰 조회
      *
-     * @param username
+     * @param id
      * @return GenericResponse<MemberDto>
      * @author 손진영
      * @since 2025.01.31
      */
     @GetMapping("/{username}/review")
-    public GenericResponse<List<ReviewsDTO>> getUserReview(@PathVariable String username) {
-        Member member = memberService.getMember(username)
+    public GenericResponse<List<ReviewsDTO>> getUserReview(@PathVariable long id) {
+        Member member = memberService.getMember(id)
                 .orElseThrow(() -> new MemberException(NON_EXISTING_ID));
 
-        List<ReviewsDTO> reviews =  reviewService.findByMemberId(username);
+        List<ReviewsDTO> reviews =  reviewService.findByMemberId(member.getId());
 
         return GenericResponse.of(
                 reviews,

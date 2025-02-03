@@ -120,8 +120,16 @@ public class ReviewService {
         reviewRepository.save(review);
     }
 
-    public List<ReviewsDTO> findByMemberId(String username) {
-        return reviewRepository.findByMemberId(username)
+    /**
+     * 특정 유저 리뷰 조회
+     *
+     * @param id
+     *
+     * @author 손진영
+     * @since 25.02.03
+     */
+    public List<ReviewsDTO> findByMemberId(long id) {
+        return reviewRepository.findByMemberId(id)
                 .stream()
                 .map(review -> ReviewsDTO.builder()
                         .id(review.getId())
