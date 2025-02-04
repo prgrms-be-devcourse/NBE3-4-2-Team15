@@ -2,7 +2,6 @@ package com.project.backend.domain.book.service;
 
 import com.project.backend.domain.book.dto.BookDTO;
 import com.project.backend.domain.book.dto.BookSimpleDTO;
-import com.project.backend.domain.book.dto.KakaoBookDTO;
 import com.project.backend.domain.book.entity.Book;
 import com.project.backend.domain.book.exception.BookErrorCode;
 import com.project.backend.domain.book.exception.BookException;
@@ -23,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,14 +105,13 @@ public class BookService {
         return savedBooks.stream()
                 .map(book -> modelMapper.map(book, BookSimpleDTO.class))
                 .toList();
-
     }
 
     /**
      * -- 책 리스트를 DB에 저장하는 메소드 --
      * 책을 구분하는 고유값인 isbn데이터를 이용하여 이미 존재하는 책은 DB에 저장하지 않음
      *
-     * @param -- ㅣist<NaverBookVO.Item> items --
+     * @param -- list<NaverBookVO.Item> items --
      * @return -- List<Book>
      * @author -- 정재익 --
      * @since -- 2월 3일 --
@@ -243,24 +242,29 @@ public class BookService {
      * -- 카카오 도서 검색 API를 호출하여 도서 목록을 조회하는 메소드 --
      *
      * @param query 검색어
-     * @return 카카오 API로부터 받은 도서 목록을 담은 KakaoBookDTO 리스트
+     * @return 카카오 API로부터 받은 도서 목록을 담은 allKakaoBooks 리스트
      *
      * @author 김남우
      * @since 2025년 1월 27일
      */
-    public List<KakaoBookDTO> searchKaKaoBooks(String query) {
+    public List<KakaoBookVO.Item> BookDataFromKakaoApi(String query) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "KakaoAK " + kakaoKey);
 
-        String url = kakaoUrl + "?query=" + query + "&size=10";
+        List<KakaoBookVO.Item> allKakaoBooks = new ArrayList<>();
 
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<KakaoBookVO> response = restTemplate.exchange(url, HttpMethod.GET, entity, KakaoBookVO.class);
+        for (int page = 1; page <= 1; page++) {
+            String url = kakaoUrl + "?query=" + query + "&page=" + page + "&size=10";
 
-        List<KakaoBookDTO> kakaoBooks = response.getBody().getDocuments();
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<KakaoBookVO> response = restTemplate.exchange(url, HttpMethod.GET, entity, KakaoBookVO.class);
 
-        return kakaoBooks;
+            List<KakaoBookVO.Item> kakaoBooks = response.getBody().getItems();
+            allKakaoBooks.addAll(kakaoBooks);
+        }
+
+        return allKakaoBooks;
     }
 
     /**
@@ -271,34 +275,27 @@ public class BookService {
      * @author 김남우
      * @since 2025년 1월 31일
      */
-    public void saveKakaoBooksToDB(String query) {
-        List<KakaoBookDTO> kakaoBooks = searchKaKaoBooks(query);
+    public List<Book> saveKakaoBooks(String query) {
+        List<KakaoBookVO.Item> kakaoBooks = BookDataFromKakaoApi(query);
 
         List<Book> newBooks = kakaoBooks.stream()
-                .map(this::convertKakaoBookToBook)
-                .filter(book -> !bookRepository.existsByIsbn(book.getIsbn()))  // 이미 존재하는 도서는 제외
+                .map(kakaoBookDTO -> modelMapper.map(kakaoBookDTO, Book.class))
+                .filter(book -> !bookRepository.existsByIsbn(book.getIsbn()))
                 .toList();
 
         bookRepository.saveAll(newBooks);
+
+        return newBooks;
     }
 
     /**
-     * -- KakaoBookDTO 객체를 Book 엔티티 객체로 변환하는 메소드 --
-     * modelMapper.map을 사용하여 필드명이 동일한 필드는 자동으로 변환
+     * -- 작가 검색 메소드 --
      *
-     * @param kakaoBookDTO 카카오 도서 API에서 받은 도서 DTO
-     * @return 변환된 Book 엔티티 객체
+     * @param
+     * @return
      *
      * @author 김남우
-     * @since 2025년 1월 31일
+     * @since 2025년 2월 4일
      */
-    private Book convertKakaoBookToBook(KakaoBookDTO kakaoBookDTO) {
-        Book book = modelMapper.map(kakaoBookDTO, Book.class);
 
-        book.setAuthor(String.join(", ", kakaoBookDTO.getAuthors()));
-        book.setDescription(kakaoBookDTO.getContents());
-        book.setImage(kakaoBookDTO.getThumbnail());
-
-        return book;
-    }
 }

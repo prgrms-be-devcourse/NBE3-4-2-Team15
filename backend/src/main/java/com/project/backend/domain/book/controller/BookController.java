@@ -2,6 +2,7 @@ package com.project.backend.domain.book.controller;
 
 import com.project.backend.domain.book.dto.BookDTO;
 import com.project.backend.domain.book.dto.BookSimpleDTO;
+import com.project.backend.domain.book.entity.Book;
 import com.project.backend.domain.book.service.BookService;
 import com.project.backend.global.response.GenericResponse;
 import lombok.RequiredArgsConstructor;
@@ -107,9 +108,9 @@ public class BookController {
      * @author 김남우
      * @since 2025-01-27
      */
-    @GetMapping("/kakaolist")
-    public GenericResponse<String> searchAndSaveBooks(@RequestParam String query) {
-        bookService.saveKakaoBooksToDB(query);
-        return GenericResponse.of("도서 저장 완료");
+    @GetMapping("/kakaobook")
+    public GenericResponse<List<Book>> BookDataFromKakaoApi(@RequestParam String query) {
+        List<Book> savedBooks = bookService.saveKakaoBooks(query);
+        return GenericResponse.of(savedBooks, "도서 저장 완료");
     }
 }
