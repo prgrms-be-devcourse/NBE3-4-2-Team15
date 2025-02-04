@@ -2,13 +2,9 @@ package com.project.backend.domain.book.controller;
 
 import com.project.backend.domain.book.dto.BookDTO;
 import com.project.backend.domain.book.dto.BookSimpleDTO;
-import com.project.backend.domain.book.dto.FavoriteDTO;
 import com.project.backend.domain.book.service.BookService;
 import com.project.backend.global.response.GenericResponse;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +12,7 @@ import java.util.List;
 /**
  * -- 도서 관련 작업을 처리하는 컨트롤러 --
  *
- * @author -- 정재익 --
+ * @author -- 정재익, 김남우 --
  * @since -- 1월 27일 --
  */
 @RequiredArgsConstructor
@@ -83,10 +79,10 @@ public class BookController {
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-    @PostMapping("/{id}/favorite")
-    public GenericResponse<String> favoriteBook(@Valid @RequestBody FavoriteDTO favoriteDto, @AuthenticationPrincipal UserDetails userDetails) {
-        return bookService.favoriteBook(favoriteDto, userDetails);
-    }
+//    @PostMapping("/{id}/favorite")
+//    public GenericResponse<String> favoriteBook(@Valid @RequestBody FavoriteDTO favoriteDto, @AuthenticationPrincipal UserDetails userDetails) {
+//        return bookService.favoriteBook(favoriteDto, userDetails);
+//    }
 
     /**
      * -- 찜한 책 목록을 확인하는 메소드 --
@@ -97,8 +93,23 @@ public class BookController {
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-    @GetMapping("/favorite")
-    public GenericResponse<List<BookSimpleDTO>> searchFavoriteBooks(@AuthenticationPrincipal UserDetails userDetails) {
-        return GenericResponse.of(bookService.searchFavoriteBooks(userDetails));
+//    @GetMapping("/favorite")
+//    public GenericResponse<List<BookSimpleDTO>> searchFavoriteBooks(@AuthenticationPrincipal UserDetails userDetails) {
+//        return GenericResponse.of(bookService.searchFavoriteBooks(userDetails));
+//    }
+
+    /**
+     * -- 카카오 API를 통해 도서 목록을 조회하고 DB에 저장하는 메소드 --
+     *
+     * @param query -- 검색어
+     * @return 저장 성공 메시지를 담은 응답 객체
+     *
+     * @author 김남우
+     * @since 2025-01-27
+     */
+    @GetMapping("/kakaolist")
+    public GenericResponse<String> searchAndSaveBooks(@RequestParam String query) {
+        bookService.saveKakaoBooksToDB(query);
+        return GenericResponse.of("도서 저장 완료");
     }
 }

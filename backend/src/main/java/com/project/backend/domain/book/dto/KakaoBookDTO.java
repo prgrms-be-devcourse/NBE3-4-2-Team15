@@ -5,14 +5,17 @@ import lombok.NonNull;
 import lombok.Setter;
 
 /**
- * -- Book엔티티의 DTO --
+ * -- KakaoBookDTO 클래스 --
  *
- * @author -- 정재익 --
- * @since -- 1월 27일 --
+ * Kakao API로부터 받아온 도서 정보를 처리하기 위한 DTO
+ * 카카오 도서 API의 응답을 매핑
+ *
+ * @author 김남우
+ * @since 2025년 1월 27일
  */
 @Getter
 @Setter
-public class BookDTO {
+public class KakaoBookDTO {
 
     @NonNull
     private Long id;
@@ -21,13 +24,13 @@ public class BookDTO {
     private String title;
 
     @NonNull
-    private String author;
+    private String[] authors;
 
     @NonNull
-    private String description;
+    private String contents;
 
     @NonNull
-    private String image;
+    private String thumbnail;
 
     @NonNull
     private String isbn;

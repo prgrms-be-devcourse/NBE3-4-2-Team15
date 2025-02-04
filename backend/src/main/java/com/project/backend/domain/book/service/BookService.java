@@ -2,22 +2,15 @@ package com.project.backend.domain.book.service;
 
 import com.project.backend.domain.book.dto.BookDTO;
 import com.project.backend.domain.book.dto.BookSimpleDTO;
-import com.project.backend.domain.book.dto.FavoriteDTO;
+import com.project.backend.domain.book.dto.KakaoBookDTO;
 import com.project.backend.domain.book.entity.Book;
-import com.project.backend.domain.book.entity.Favorite;
 import com.project.backend.domain.book.exception.BookErrorCode;
 import com.project.backend.domain.book.exception.BookException;
-import com.project.backend.domain.book.key.FavoriteId;
 import com.project.backend.domain.book.repository.BookRepository;
 import com.project.backend.domain.book.repository.FavoriteRepository;
+import com.project.backend.domain.book.vo.KakaoBookVO;
 import com.project.backend.domain.book.vo.NaverBookVO;
-import com.project.backend.domain.member.entity.Member;
-import com.project.backend.domain.member.exception.MemberErrorCode;
-import com.project.backend.domain.member.exception.MemberException;
 import com.project.backend.domain.member.repository.MemberRepository;
-import com.project.backend.global.authority.CustomUserDetails;
-import com.project.backend.global.response.GenericResponse;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,19 +20,16 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * -- 도서 관련 작업을 처리하는 서비스클래스 --
  *
- * @author -- 정재익 --
+ * @author -- 정재익, 김남우 --
  * @since -- 1월 27일 --
  */
 @RequiredArgsConstructor
@@ -59,6 +49,12 @@ public class BookService {
 
     @Value("${naver.book-search-url}")
     private String apiUrl;
+
+    @Value("${kakao.key}")
+    private String kakaoKey;
+
+    @Value("${kakao.url}")
+    private String kakaoUrl;
 
     /**
      * -- 네이버api를 통해 검색어에 대한 도서데이터를 가져오는 메소드 --
@@ -181,36 +177,36 @@ public class BookService {
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-    @Transactional
-    public GenericResponse<String> favoriteBook(FavoriteDTO favoriteDTO, @AuthenticationPrincipal UserDetails userDetails) {
-        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-        Long memberId = customUserDetails.getId();
-
-        FavoriteId favoriteId = new FavoriteId(userDetails.getUsername(), favoriteDTO.getBookId());
-
-        Book book = bookRepository.findById(favoriteDTO.getBookId())
-                .orElseThrow(() -> new BookException(BookErrorCode.BOOK_NOT_FOUND));
-
-        Member member = memberRepository.findById(memberId)
-                .orElseThrow(() -> new MemberException(MemberErrorCode.NON_EXISTING_ID));
-
-        if (favoriteRepository.existsById(favoriteId)) {
-            favoriteRepository.deleteById(favoriteId);
-            book.setFavoriteCount(book.getFavoriteCount() - 1);
-            bookRepository.save(book);
-            return GenericResponse.of("찜이 취소되었습니다.");
-        } else {
-            Favorite favorite = modelMapper.map(favoriteDTO, Favorite.class);
-            favorite.setId(favoriteId);
-            favorite.setBook(book);
-            favorite.setMember(member);
-            favoriteRepository.save(favorite);
-            book.setFavoriteCount(book.getFavoriteCount() + 1);
-            bookRepository.save(book);
-
-            return GenericResponse.of("해당 도서를 찜 목록에 추가하였습니다.");
-        }
-    }
+//    @Transactional
+//    public GenericResponse<String> favoriteBook(FavoriteDTO favoriteDTO, @AuthenticationPrincipal UserDetails userDetails) {
+//        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+//        Long memberId = customUserDetails.getId();
+//
+//        FavoriteId favoriteId = new FavoriteId(userDetails.getUsername(), favoriteDTO.getBookId());
+//
+//        Book book = bookRepository.findById(favoriteDTO.getBookId())
+//                .orElseThrow(() -> new BookException(BookErrorCode.BOOK_NOT_FOUND));
+//
+//        Member member = memberRepository.findById(memberId)
+//                .orElseThrow(() -> new MemberException(MemberErrorCode.NON_EXISTING_ID));
+//
+//        if (favoriteRepository.existsById(favoriteId)) {
+//            favoriteRepository.deleteById(favoriteId);
+//            book.setFavoriteCount(book.getFavoriteCount() - 1);
+//            bookRepository.save(book);
+//            return GenericResponse.of("찜이 취소되었습니다.");
+//        } else {
+//            Favorite favorite = modelMapper.map(favoriteDTO, Favorite.class);
+//            favorite.setId(favoriteId);
+//            favorite.setBook(book);
+//            favorite.setMember(member);
+//            favoriteRepository.save(favorite);
+//            book.setFavoriteCount(book.getFavoriteCount() + 1);
+//            bookRepository.save(book);
+//
+//            return GenericResponse.of("해당 도서를 찜 목록에 추가하였습니다.");
+//        }
+//    }
 
     /**
      * -- 찜한 책 목록을 확인하는 메소드 --
@@ -223,23 +219,86 @@ public class BookService {
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-    public List<BookSimpleDTO> searchFavoriteBooks(@AuthenticationPrincipal UserDetails userDetails) {
-        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-        Long memberId = customUserDetails.getId();
-        String memberUsername = userDetails.getUsername();
+//    public List<BookSimpleDTO> searchFavoriteBooks(@AuthenticationPrincipal UserDetails userDetails) {
+//        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+//        Long memberId = customUserDetails.getId();
+//        String memberUsername = userDetails.getUsername();
+//
+//        if (!memberRepository.existsById(memberId)) {
+//            throw new MemberException(MemberErrorCode.NON_EXISTING_ID);
+//        }
+//
+//        List<Favorite> favorites = favoriteRepository.findById_MemberUsername(memberUsername);
+//
+//        if (favorites.isEmpty()) {
+//            throw new BookException(BookErrorCode.NO_FAVORITE_BOOKS);
+//        }
+//
+//        return favorites.stream()
+//                .map(favorite -> modelMapper.map(favorite.getBook(), BookSimpleDTO.class))
+//                .collect(Collectors.toList());
+//    }
 
-        if (!memberRepository.existsById(memberId)) {
-            throw new MemberException(MemberErrorCode.NON_EXISTING_ID);
-        }
+    /**
+     * -- 카카오 도서 검색 API를 호출하여 도서 목록을 조회하는 메소드 --
+     *
+     * @param query 검색어
+     * @return 카카오 API로부터 받은 도서 목록을 담은 KakaoBookDTO 리스트
+     *
+     * @author 김남우
+     * @since 2025년 1월 27일
+     */
+    public List<KakaoBookDTO> searchKaKaoBooks(String query) {
+        RestTemplate restTemplate = new RestTemplate();
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Authorization", "KakaoAK " + kakaoKey);
 
-        List<Favorite> favorites = favoriteRepository.findById_MemberUsername(memberUsername);
+        String url = kakaoUrl + "?query=" + query + "&size=10";
 
-        if (favorites.isEmpty()) {
-            throw new BookException(BookErrorCode.NO_FAVORITE_BOOKS);
-        }
+        HttpEntity<String> entity = new HttpEntity<>(headers);
+        ResponseEntity<KakaoBookVO> response = restTemplate.exchange(url, HttpMethod.GET, entity, KakaoBookVO.class);
 
-        return favorites.stream()
-                .map(favorite -> modelMapper.map(favorite.getBook(), BookSimpleDTO.class))
-                .collect(Collectors.toList());
+        List<KakaoBookDTO> kakaoBooks = response.getBody().getDocuments();
+
+        return kakaoBooks;
+    }
+
+    /**
+     * -- 카카오 도서 API에서 받은 도서 정보를 DB에 저장하는 메소드 --
+     *
+     * @param query 검색어
+     *
+     * @author 김남우
+     * @since 2025년 1월 31일
+     */
+    public void saveKakaoBooksToDB(String query) {
+        List<KakaoBookDTO> kakaoBooks = searchKaKaoBooks(query);
+
+        List<Book> newBooks = kakaoBooks.stream()
+                .map(this::convertKakaoBookToBook)
+                .filter(book -> !bookRepository.existsByIsbn(book.getIsbn()))  // 이미 존재하는 도서는 제외
+                .toList();
+
+        bookRepository.saveAll(newBooks);
+    }
+
+    /**
+     * -- KakaoBookDTO 객체를 Book 엔티티 객체로 변환하는 메소드 --
+     * modelMapper.map을 사용하여 필드명이 동일한 필드는 자동으로 변환
+     *
+     * @param kakaoBookDTO 카카오 도서 API에서 받은 도서 DTO
+     * @return 변환된 Book 엔티티 객체
+     *
+     * @author 김남우
+     * @since 2025년 1월 31일
+     */
+    private Book convertKakaoBookToBook(KakaoBookDTO kakaoBookDTO) {
+        Book book = modelMapper.map(kakaoBookDTO, Book.class);
+
+        book.setAuthor(String.join(", ", kakaoBookDTO.getAuthors()));
+        book.setDescription(kakaoBookDTO.getContents());
+        book.setImage(kakaoBookDTO.getThumbnail());
+
+        return book;
     }
 }
