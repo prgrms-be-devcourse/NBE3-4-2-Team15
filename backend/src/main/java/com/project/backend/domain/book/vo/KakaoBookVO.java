@@ -7,7 +7,7 @@ import lombok.*;
 import java.util.List;
 
 /**
- * -- KakaoBookVO 객체는 카카오 도서 API에서 받은 응답 데이터를 표현하는 VO --
+ * -- 카카오 도서 API에서 받은 응답 데이터를 표현하는 VO --
  * 카카오 API의 응답으로 도서 목록이 포함된 documents 필드를 포함
  *
  * @author 김남우

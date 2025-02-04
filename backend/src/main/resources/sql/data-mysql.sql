@@ -22,21 +22,21 @@ INSERT INTO member(`username`, `created_at`, `modified_at`, `birth`, `email`, `g
   - 책 데이터가 있을 때는 넣고 없을 때는 아무일도 일어나지 않음
   - 데이터를 하나씩 추가하는 방식
  */
--- INSERT INTO book(`isbn`, `title`, `author`, `description`, `image`, `favorite_count`)
---     SELECT 12345678, 'title1', 'author1', 'description1', 'image1', '3' FROM DUAL
---     WHERE NOT EXISTS (SELECT `id` FROM book WHERE id = 12345678) LIMIT 1;
--- INSERT INTO book(`isbn`, `title`, `author`, `description`, `image`, `favorite_count`)
---     SELECT 11111111, 'title2', 'author2', 'description2', 'image2', '2' FROM DUAL
---     WHERE NOT EXISTS (SELECT `id` FROM book WHERE id = 11111111) LIMIT 1;
--- INSERT INTO book(`isbn`, `title`, `author`, `description`, `image`, `favorite_count`)
---     SELECT 11111112, 'title3', 'author3', 'description3', 'image3', '1' FROM DUAL
---     WHERE NOT EXISTS (SELECT `id` FROM book WHERE id = 11111112) LIMIT 1;
--- INSERT INTO book(`isbn`, `title`, `author`, `description`, `image`, `favorite_count`)
---     SELECT 11111311, 'title4', 'author4', 'description4', 'image4', '0' FROM DUAL
---     WHERE NOT EXISTS (SELECT `id` FROM book WHERE id = 11111311) LIMIT 1;
--- INSERT INTO book(`isbn`, `title`, `author`, `description`, `image`, `favorite_count`)
---     SELECT 11141311, 'title5', 'author5', 'description5', 'image5', '0' FROM DUAL
---     WHERE NOT EXISTS (SELECT `id` FROM book WHERE id = 11141311) LIMIT 1;
+INSERT INTO book(`isbn`, `title`, `author`, `description`, `image`, `favorite_count`)
+    SELECT 12345678, 'title1', 'author1', 'description1', 'image1', '3' FROM DUAL
+    WHERE NOT EXISTS (SELECT `id` FROM book WHERE id = 12345678) LIMIT 1;
+INSERT INTO book(`isbn`, `title`, `author`, `description`, `image`, `favorite_count`)
+    SELECT 11111111, 'title2', 'author2', 'description2', 'image2', '2' FROM DUAL
+    WHERE NOT EXISTS (SELECT `id` FROM book WHERE id = 11111111) LIMIT 1;
+INSERT INTO book(`isbn`, `title`, `author`, `description`, `image`, `favorite_count`)
+    SELECT 11111112, 'title3', 'author3', 'description3', 'image3', '1' FROM DUAL
+    WHERE NOT EXISTS (SELECT `id` FROM book WHERE id = 11111112) LIMIT 1;
+INSERT INTO book(`isbn`, `title`, `author`, `description`, `image`, `favorite_count`)
+    SELECT 11111311, 'title4', 'author4', 'description4', 'image4', '0' FROM DUAL
+    WHERE NOT EXISTS (SELECT `id` FROM book WHERE id = 11111311) LIMIT 1;
+INSERT INTO book(`isbn`, `title`, `author`, `description`, `image`, `favorite_count`)
+    SELECT 11141311, 'title5', 'author5', 'description5', 'image5', '0' FROM DUAL
+    WHERE NOT EXISTS (SELECT `id` FROM book WHERE id = 11141311) LIMIT 1;
 
 /**
   찜 데이터
