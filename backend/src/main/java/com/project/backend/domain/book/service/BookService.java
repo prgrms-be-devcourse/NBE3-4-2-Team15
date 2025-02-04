@@ -10,7 +10,6 @@ import com.project.backend.domain.book.exception.BookException;
 import com.project.backend.domain.book.key.FavoriteId;
 import com.project.backend.domain.book.repository.BookRepository;
 import com.project.backend.domain.book.repository.FavoriteRepository;
-import com.project.backend.domain.book.vo.NaverBookVO;
 import com.project.backend.domain.member.entity.Member;
 import com.project.backend.domain.member.exception.MemberErrorCode;
 import com.project.backend.domain.member.exception.MemberException;
@@ -20,17 +19,11 @@ import com.project.backend.global.response.GenericResponse;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.mapping.PropertyReferenceException;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
@@ -51,73 +44,15 @@ public class BookService {
     private final MemberRepository memberRepository;
     private final ModelMapper modelMapper;
 
-    @Value("${naver.client-id}")
-    private String clientId;
-
-    @Value("${naver.client-secret}")
-    private String clientSecret;
-
-    @Value("${naver.book-search-url}")
-    private String apiUrl;
-
-    /**
-     * -- 네이버api를 통해 검색어에 대한 도서데이터를 가져오는 메소드 --
-     * 책은 한번에 30권 조회되도록 설정했다.
-     * <p>
-     *
-     * @param -- title (컨트롤러에서 입력한 검색어) --
-     * @return -- List<NaverBookVO.Item> --
-     * @author -- 정재익 --
-     * @since -- 2월 3일 --
-     */
-    private List<NaverBookVO.Item> BookDataFromNaverApi(String title) {
-        if (title == null || title.isEmpty()) {
-            throw new BookException(BookErrorCode.BOOK_NOT_FOUND);
-        }
-
-        RestTemplate restTemplate = new RestTemplate();
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-Naver-Client-Id", clientId);
-        headers.set("X-Naver-Client-Secret", clientSecret);
-
-        String url = apiUrl + "?query=" + title + "&display=30";
-        HttpEntity<String> entity = new HttpEntity<>(headers);
-        ResponseEntity<NaverBookVO> response = restTemplate.exchange(url, HttpMethod.GET, entity, NaverBookVO.class);
-
-        return Optional.ofNullable(response.getBody())
-                .map(NaverBookVO::getItems)
-                .orElseThrow(() -> new BookException(BookErrorCode.BOOK_NOT_FOUND));
-    }
-
-    /**
-     * -- 네이버api를 통해 받아온 검색 결과를 List<BookSimpleDto>로 변환하여 컨트롤러에 반환하는 메소드 --
-     * -- 동시에 아래 saveBooks 메소드를 통해 검색 결과를 DB에 저장
-     * <p>
-     * 1. 검색 결과를 BookDataFromApi에 전달
-     * 2. 검색 결과를 DB에 저장
-     * 3. DB에 저장된 값을 List<BookSimpleDto>로 변환하여 컨트롤러에 전달
-     *
-     * @param -- title (컨트롤러에서 입력한 검색어) --
-     * @return -- List<BookSimpleDTO> --
-     * @author -- 정재익 --
-     * @since -- 2월 3일 --
-     */
-    public List<BookSimpleDTO> searchTitleBooks(String title) {
-        List<NaverBookVO.Item> items = BookDataFromNaverApi(title);
-        saveBooks(items.stream().map(item -> modelMapper.map(item, BookDTO.class)).toList());
-        return items.stream().map(item -> modelMapper.map(item, BookSimpleDTO.class)).toList();
-    }
-
     /**
      * -- 책 리스트를 DB에 저장하는 메소드 --
      * 책을 구분하는 고유값인 isbn데이터를 이용하여 이미 존재하는 책은 DB에 저장하지 않음
      *
-     * @param -- List<NaverBookVO.Item> items --
-     * @return -- List<Book>
+     * @param -- List<BookDTO> items --
      * @author -- 정재익 --
-     * @since -- 2월 3일 --
+     * @since -- 2월 4일 --
      */
-    private void saveBooks(List<BookDTO> items) {
+    public void saveBooks(List<BookDTO> items) {
         List<Book> newBooks = items.stream()
                 .map(item -> modelMapper.map(item, Book.class))
                 .filter(book -> !bookRepository.existsByIsbn(book.getIsbn()))

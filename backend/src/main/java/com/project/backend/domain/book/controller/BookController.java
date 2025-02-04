@@ -4,6 +4,7 @@ import com.project.backend.domain.book.dto.BookDTO;
 import com.project.backend.domain.book.dto.BookSimpleDTO;
 import com.project.backend.domain.book.dto.FavoriteDTO;
 import com.project.backend.domain.book.service.BookService;
+import com.project.backend.domain.book.service.NaverService;
 import com.project.backend.global.response.GenericResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +26,7 @@ import java.util.List;
 public class BookController {
 
     private final BookService bookService;
+    private final NaverService naverService;
 
     /**
      * -- 제목 검색 --
@@ -37,7 +39,7 @@ public class BookController {
      */
     @GetMapping
     public GenericResponse<List<BookSimpleDTO>> searchTitleBooks(@RequestParam("title") String title) {
-        return GenericResponse.of(bookService.searchTitleBooks(title), "해당 제목의 도서 목록 입니다.");
+        return GenericResponse.of(naverService.searchTitleBooks(title), "해당 제목의 도서 목록 입니다.");
     }
 
     /**
