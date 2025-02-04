@@ -30,5 +30,8 @@ public class BookDTO {
     private String image;
 
     @NonNull
+    private String isbn;
+
+    @NonNull
     private int favoriteCount;
 }

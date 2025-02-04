@@ -104,30 +104,26 @@ public class BookService {
      */
     public List<BookSimpleDTO> searchTitleBooks(String title) {
         List<NaverBookVO.Item> items = BookDataFromNaverApi(title);
-        List<Book> savedBooks = saveBooks(items);
-
-        return savedBooks.stream()
-                .map(book -> modelMapper.map(book, BookSimpleDTO.class))
-                .toList();
-
+        saveBooks(items.stream().map(item -> modelMapper.map(item, BookDTO.class)).toList());
+        return items.stream().map(item -> modelMapper.map(item, BookSimpleDTO.class)).toList();
     }
 
     /**
      * -- 책 리스트를 DB에 저장하는 메소드 --
      * 책을 구분하는 고유값인 isbn데이터를 이용하여 이미 존재하는 책은 DB에 저장하지 않음
      *
-     * @param -- ㅣist<NaverBookVO.Item> items --
+     * @param -- List<NaverBookVO.Item> items --
      * @return -- List<Book>
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-    private List<Book> saveBooks(List<NaverBookVO.Item> items) {
+    private void saveBooks(List<BookDTO> items) {
         List<Book> newBooks = items.stream()
                 .map(item -> modelMapper.map(item, Book.class))
                 .filter(book -> !bookRepository.existsByIsbn(book.getIsbn()))
                 .toList();
 
-        return bookRepository.saveAll(newBooks);
+        bookRepository.saveAll(newBooks);
     }
 
     /**
