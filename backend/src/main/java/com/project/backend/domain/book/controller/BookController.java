@@ -2,12 +2,15 @@ package com.project.backend.domain.book.controller;
 
 import com.project.backend.domain.book.dto.BookDTO;
 import com.project.backend.domain.book.dto.BookSimpleDTO;
+import com.project.backend.domain.book.dto.FavoriteDTO;
 import com.project.backend.domain.book.entity.Book;
 import com.project.backend.domain.book.service.BookService;
 import com.project.backend.global.response.GenericResponse;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -34,7 +37,7 @@ public class BookController {
      */
     @GetMapping
     public GenericResponse<List<BookSimpleDTO>> searchTitleBooks(@RequestParam("title") String title) {
-        return GenericResponse.of(bookService.searchTitleBooks(title), "해당 제목의 도서 목록 입니다.");
+        return GenericResponse.of(bookService.searchByTitle(title), "해당 제목의 도서 목록 입니다.");
     }
 
     /**
@@ -80,10 +83,10 @@ public class BookController {
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-//    @PostMapping("/{id}/favorite")
-//    public GenericResponse<String> favoriteBook(@Valid @RequestBody FavoriteDTO favoriteDto, @AuthenticationPrincipal UserDetails userDetails) {
-//        return bookService.favoriteBook(favoriteDto, userDetails);
-//    }
+    @PostMapping("/{id}/favorite")
+    public GenericResponse<String> favoriteBook(@Valid @RequestBody FavoriteDTO favoriteDto, @AuthenticationPrincipal UserDetails userDetails) {
+        return bookService.favoriteBook(favoriteDto, userDetails);
+    }
 
     /**
      * -- 찜한 책 목록을 확인하는 메소드 --
@@ -94,10 +97,10 @@ public class BookController {
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-//    @GetMapping("/favorite")
-//    public GenericResponse<List<BookSimpleDTO>> searchFavoriteBooks(@AuthenticationPrincipal UserDetails userDetails) {
-//        return GenericResponse.of(bookService.searchFavoriteBooks(userDetails));
-//    }
+    @GetMapping("/favorite")
+    public GenericResponse<List<BookSimpleDTO>> searchFavoriteBooks(@AuthenticationPrincipal UserDetails userDetails) {
+        return GenericResponse.of(bookService.searchFavoriteBooks(userDetails));
+    }
 
     /**
      * -- 카카오 API를 통해 도서 목록을 조회하고 DB에 저장하는 메소드 --
@@ -109,8 +112,30 @@ public class BookController {
      * @since 2025-01-27
      */
     @GetMapping("/kakaobook")
-    public GenericResponse<List<Book>> BookDataFromKakaoApi(@RequestParam String query) {
+    public GenericResponse<List<Book>> saveBookDataFromKakaoApi(@RequestParam String query) {
         List<Book> savedBooks = bookService.saveKakaoBooks(query);
         return GenericResponse.of(savedBooks, "도서 저장 완료");
+    }
+
+    /**
+     * -- 제목, 작가 검색 메소드 --
+     *
+     * @return 저장 성공 메시지와 검색된 응답 객체
+     *
+     * @author 김남우
+     * @since 2025-01-27
+     */
+    @GetMapping
+    public GenericResponse<List<BookSimpleDTO>> searchBooks(
+            @RequestParam(required = false) String title,
+            @RequestParam(required = false) String author) {
+
+        if (title != null) {
+            return GenericResponse.of(bookService.searchByTitle(title), "제목 검색 완료");
+        } else if (author != null) {
+            return GenericResponse.of(bookService.searchByAuthor(author), "작가 검색 완료");
+        } else {
+            return GenericResponse.of(Collections.emptyList(), "검색어를 입력해주세요.");
+        }
     }
 }
