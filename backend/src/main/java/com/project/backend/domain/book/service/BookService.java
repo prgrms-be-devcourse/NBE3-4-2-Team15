@@ -2,14 +2,22 @@ package com.project.backend.domain.book.service;
 
 import com.project.backend.domain.book.dto.BookDTO;
 import com.project.backend.domain.book.dto.BookSimpleDTO;
+import com.project.backend.domain.book.dto.FavoriteDTO;
 import com.project.backend.domain.book.entity.Book;
+import com.project.backend.domain.book.entity.Favorite;
 import com.project.backend.domain.book.exception.BookErrorCode;
 import com.project.backend.domain.book.exception.BookException;
+import com.project.backend.domain.book.key.FavoriteId;
 import com.project.backend.domain.book.repository.BookRepository;
 import com.project.backend.domain.book.repository.FavoriteRepository;
 import com.project.backend.domain.book.vo.KakaoBookVO;
 import com.project.backend.domain.book.vo.NaverBookVO;
+import com.project.backend.domain.member.entity.Member;
+import com.project.backend.domain.member.exception.MemberErrorCode;
+import com.project.backend.domain.member.exception.MemberException;
 import com.project.backend.domain.member.repository.MemberRepository;
+import com.project.backend.global.authority.CustomUserDetails;
+import com.project.backend.global.response.GenericResponse;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,6 +33,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * -- 도서 관련 작업을 처리하는 서비스클래스 --
@@ -66,7 +75,7 @@ public class BookService {
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-    private List<NaverBookVO.Item> BookDataFromNaverApi(String title) {
+    private List<NaverBookVO.Item> saveBookDataFromNaverApi(String title) {
         if (title == null || title.isEmpty()) {
             throw new BookException(BookErrorCode.BOOK_NOT_FOUND);
         }
@@ -98,31 +107,28 @@ public class BookService {
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-    public List<BookSimpleDTO> searchTitleBooks(String title) {
-        List<NaverBookVO.Item> items = BookDataFromNaverApi(title);
-        List<Book> savedBooks = saveBooks(items);
-
-        return savedBooks.stream()
-                .map(book -> modelMapper.map(book, BookSimpleDTO.class))
-                .toList();
+    public List<BookSimpleDTO> searchByTitle(String title) {
+        List<NaverBookVO.Item> items = saveBookDataFromNaverApi(title);
+        saveBooks(items.stream().map(item -> modelMapper.map(item, BookDTO.class)).toList());
+        return items.stream().map(item -> modelMapper.map(item, BookSimpleDTO.class)).toList();
     }
 
     /**
      * -- 책 리스트를 DB에 저장하는 메소드 --
      * 책을 구분하는 고유값인 isbn데이터를 이용하여 이미 존재하는 책은 DB에 저장하지 않음
      *
-     * @param -- list<NaverBookVO.Item> items --
+     * @param -- List<NaverBookVO.Item> items --
      * @return -- List<Book>
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-    private List<Book> saveBooks(List<NaverBookVO.Item> items) {
+    private void saveBooks(List<BookDTO> items) {
         List<Book> newBooks = items.stream()
                 .map(item -> modelMapper.map(item, Book.class))
                 .filter(book -> !bookRepository.existsByIsbn(book.getIsbn()))
                 .toList();
 
-        return bookRepository.saveAll(newBooks);
+        bookRepository.saveAll(newBooks);
     }
 
     /**
@@ -176,36 +182,36 @@ public class BookService {
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-//    @Transactional
-//    public GenericResponse<String> favoriteBook(FavoriteDTO favoriteDTO, @AuthenticationPrincipal UserDetails userDetails) {
-//        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-//        Long memberId = customUserDetails.getId();
-//
-//        FavoriteId favoriteId = new FavoriteId(userDetails.getUsername(), favoriteDTO.getBookId());
-//
-//        Book book = bookRepository.findById(favoriteDTO.getBookId())
-//                .orElseThrow(() -> new BookException(BookErrorCode.BOOK_NOT_FOUND));
-//
-//        Member member = memberRepository.findById(memberId)
-//                .orElseThrow(() -> new MemberException(MemberErrorCode.NON_EXISTING_ID));
-//
-//        if (favoriteRepository.existsById(favoriteId)) {
-//            favoriteRepository.deleteById(favoriteId);
-//            book.setFavoriteCount(book.getFavoriteCount() - 1);
-//            bookRepository.save(book);
-//            return GenericResponse.of("찜이 취소되었습니다.");
-//        } else {
-//            Favorite favorite = modelMapper.map(favoriteDTO, Favorite.class);
-//            favorite.setId(favoriteId);
-//            favorite.setBook(book);
-//            favorite.setMember(member);
-//            favoriteRepository.save(favorite);
-//            book.setFavoriteCount(book.getFavoriteCount() + 1);
-//            bookRepository.save(book);
-//
-//            return GenericResponse.of("해당 도서를 찜 목록에 추가하였습니다.");
-//        }
-//    }
+    @Transactional
+    public GenericResponse<String> favoriteBook(FavoriteDTO favoriteDTO, @AuthenticationPrincipal UserDetails userDetails) {
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+        Long memberId = customUserDetails.getId();
+
+        FavoriteId favoriteId = new FavoriteId(userDetails.getUsername(), favoriteDTO.getBookId());
+
+        Book book = bookRepository.findById(favoriteDTO.getBookId())
+                .orElseThrow(() -> new BookException(BookErrorCode.BOOK_NOT_FOUND));
+
+        Member member = memberRepository.findById(memberId)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NON_EXISTING_ID));
+
+        if (favoriteRepository.existsById(favoriteId)) {
+            favoriteRepository.deleteById(favoriteId);
+            book.setFavoriteCount(book.getFavoriteCount() - 1);
+            bookRepository.save(book);
+            return GenericResponse.of("찜이 취소되었습니다.");
+        } else {
+            Favorite favorite = modelMapper.map(favoriteDTO, Favorite.class);
+            favorite.setId(favoriteId);
+            favorite.setBook(book);
+            favorite.setMember(member);
+            favoriteRepository.save(favorite);
+            book.setFavoriteCount(book.getFavoriteCount() + 1);
+            bookRepository.save(book);
+
+            return GenericResponse.of("해당 도서를 찜 목록에 추가하였습니다.");
+        }
+    }
 
     /**
      * -- 찜한 책 목록을 확인하는 메소드 --
@@ -218,25 +224,25 @@ public class BookService {
      * @author -- 정재익 --
      * @since -- 2월 3일 --
      */
-//    public List<BookSimpleDTO> searchFavoriteBooks(@AuthenticationPrincipal UserDetails userDetails) {
-//        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-//        Long memberId = customUserDetails.getId();
-//        String memberUsername = userDetails.getUsername();
-//
-//        if (!memberRepository.existsById(memberId)) {
-//            throw new MemberException(MemberErrorCode.NON_EXISTING_ID);
-//        }
-//
-//        List<Favorite> favorites = favoriteRepository.findById_MemberUsername(memberUsername);
-//
-//        if (favorites.isEmpty()) {
-//            throw new BookException(BookErrorCode.NO_FAVORITE_BOOKS);
-//        }
-//
-//        return favorites.stream()
-//                .map(favorite -> modelMapper.map(favorite.getBook(), BookSimpleDTO.class))
-//                .collect(Collectors.toList());
-//    }
+    public List<BookSimpleDTO> searchFavoriteBooks(@AuthenticationPrincipal UserDetails userDetails) {
+        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
+        Long memberId = customUserDetails.getId();
+        String memberUsername = userDetails.getUsername();
+
+        if (!memberRepository.existsById(memberId)) {
+            throw new MemberException(MemberErrorCode.NON_EXISTING_ID);
+        }
+
+        List<Favorite> favorites = favoriteRepository.findById_MemberUsername(memberUsername);
+
+        if (favorites.isEmpty()) {
+            throw new BookException(BookErrorCode.NO_FAVORITE_BOOKS);
+        }
+
+        return favorites.stream()
+                .map(favorite -> modelMapper.map(favorite.getBook(), BookSimpleDTO.class))
+                .collect(Collectors.toList());
+    }
 
     /**
      * -- 카카오 도서 검색 API를 호출하여 도서 목록을 조회하는 메소드 --
@@ -247,7 +253,7 @@ public class BookService {
      * @author 김남우
      * @since 2025년 1월 27일
      */
-    public List<KakaoBookVO.Item> BookDataFromKakaoApi(String query) {
+    private List<KakaoBookVO.Item> saveBookDataFromKakaoApi(String query) {
         RestTemplate restTemplate = new RestTemplate();
         HttpHeaders headers = new HttpHeaders();
         headers.set("Authorization", "KakaoAK " + kakaoKey);
@@ -276,7 +282,7 @@ public class BookService {
      * @since 2025년 1월 31일
      */
     public List<Book> saveKakaoBooks(String query) {
-        List<KakaoBookVO.Item> kakaoBooks = BookDataFromKakaoApi(query);
+        List<KakaoBookVO.Item> kakaoBooks = saveBookDataFromKakaoApi(query);
 
         List<Book> newBooks = kakaoBooks.stream()
                 .map(kakaoBookDTO -> modelMapper.map(kakaoBookDTO, Book.class))
@@ -297,5 +303,14 @@ public class BookService {
      * @author 김남우
      * @since 2025년 2월 4일
      */
-
+    public List<BookSimpleDTO> searchByAuthor(String author) {
+        return bookRepository.findByAuthor(author)
+                .stream()
+                .map(book -> new BookSimpleDTO(
+                        book.getTitle(),
+                        book.getAuthor(),
+                        book.getImage()
+                ))
+                .toList();
+    }
 }
