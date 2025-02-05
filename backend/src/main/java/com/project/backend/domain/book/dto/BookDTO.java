@@ -15,9 +15,6 @@ import lombok.Setter;
 public class BookDTO {
 
     @NonNull
-    private Long id;
-
-    @NonNull
     private String title;
 
     @NonNull
@@ -28,6 +25,9 @@ public class BookDTO {
 
     @NonNull
     private String image;
+
+    @NonNull
+    private String isbn;
 
     @NonNull
     private int favoriteCount;
