@@ -1,8 +1,8 @@
 package com.project.backend.domain.book.entity;
 
 import com.project.backend.domain.book.key.FavoriteId;
-import com.project.backend.domain.member.entity.Member;
-import jakarta.persistence.*;
+import jakarta.persistence.EmbeddedId;
+import jakarta.persistence.Entity;
 import lombok.*;
 
 /**
@@ -21,14 +21,4 @@ public class Favorite {
 
     @EmbeddedId
     private FavoriteId id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("bookId")
-    @JoinColumn(name = "book_id", nullable = false)
-    private Book book;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("memberUsername")
-    @JoinColumn(name = "member_username", referencedColumnName = "username")
-    private Member member;
 }

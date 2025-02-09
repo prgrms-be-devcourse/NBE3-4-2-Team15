@@ -2,11 +2,13 @@ package com.project.backend.domain.book.controller;
 
 import com.project.backend.domain.book.dto.BookDTO;
 import com.project.backend.domain.book.service.BookService;
+import com.project.backend.global.authority.CustomUserDetails;
 import com.project.backend.global.response.GenericResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -69,20 +71,20 @@ public class BookController {
 
     /**
      * 도서 찜하기,취소하기 기능
-     * 로그인한 사용자의 정보를 @AuthenticationPrincipal을 통해 가져와 FavoriteRepository를 이용하여 찜하거나 찜 취소
-     * 달라진 도서별 찜 개수를 BookRepository에 반영
      *
-     * @param -- FavoriteDTO --
-     * @param -- userDetails 로그인한 사용자 정보 --
+     * @param -- isbn --
+     * @param -- bookDto -- 프론트에 있는 bookdto를 body로 받는다
+     * @param -- customUserDetails 로그인한 사용자 정보 --
      * @return -- GenericResponse<String>
      * @author -- 정재익 --
-     * @since -- 2월 3일 --
+     * @since -- 2월 9일 --
      */
-//    @PostMapping("/{id}/favorite")
-//    @Operation(summary = "도서 찜 하기")
-//    public GenericResponse<String> favoriteBook(@Valid @RequestBody FavoriteDTO favoriteDto, @AuthenticationPrincipal UserDetails userDetails) {
-//        return bookService.favoriteBook(favoriteDto, userDetails);
-//    }
+    @PostMapping("/{isbn}/favorite")
+    @Operation(summary = "도서 찜 하기")
+    public GenericResponse<String> favoriteBook(@PathVariable(name = "isbn") String isbn, @RequestBody BookDTO bookDto, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        bookDto.setIsbn(isbn);
+        return bookService.favoriteBook(bookDto, customUserDetails.getUsername());
+    }
 
 //    /**
 //     * -- 찜한 책 목록을 확인하는 메소드 --

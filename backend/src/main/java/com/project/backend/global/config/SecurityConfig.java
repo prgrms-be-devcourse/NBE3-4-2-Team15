@@ -11,12 +11,10 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
-import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer.FrameOptionsConfig;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
@@ -56,7 +54,7 @@ public class SecurityConfig {
                 .cors(cors -> cors.configurationSource(corsConfig())) // CORS 설정 적용
                 .authorizeHttpRequests(auth -> auth
                         // GET 요청은 모두 허용(책 목록, 리뷰 조회 등)
-                        .requestMatchers(HttpMethod.GET, "/book", "/book/{isbn}").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/book", "/book/{isbn}", "book/favorite").permitAll()
                         .requestMatchers(HttpMethod.GET, "/review").permitAll()
                         .requestMatchers(HttpMethod.GET, "/review/{reviewId}/comments").permitAll()
 

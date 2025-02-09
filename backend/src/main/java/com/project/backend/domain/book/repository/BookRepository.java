@@ -1,10 +1,12 @@
 package com.project.backend.domain.book.repository;
 
 import com.project.backend.domain.book.entity.Book;
-import org.springframework.data.domain.Sort;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import java.util.List;
 
 /**
  * -- 책 저장소 --
@@ -15,6 +17,18 @@ import java.util.List;
 @Repository
 public interface BookRepository extends JpaRepository<Book, Long> {
     boolean existsByIsbn(String isbn);
+    Book findByIsbn(String isbn);
 
-    List<Book> findAll(Sort sort);
+    /**
+     * 리포지토리 특정 컬럼의 favoritecount를 수정하는 메소드
+     *
+     * @param -- book -- Book 객체
+     * @param -- int amount -- favoritcount를 수정할 숫자
+     * @author -- 정재익 --
+     * @since -- 2월 9일 --
+     */
+    @Modifying
+    @Transactional
+    @Query("UPDATE Book b SET b.favoriteCount = b.favoriteCount + :amount WHERE b.id = :#{#book.id}")
+    void updateFavoriteCount(@Param("book") Book book, @Param("amount") int amount);
 }
