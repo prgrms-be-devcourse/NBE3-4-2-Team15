@@ -1,5 +1,6 @@
 package com.project.backend.domain.member.entity;
 
+import com.project.backend.domain.book.entity.Favorite;
 import com.project.backend.domain.review.comment.entity.ReviewComment;
 import com.project.backend.domain.review.review.entity.Review;
 import com.project.backend.global.baseEntity.BaseEntity;
@@ -47,4 +48,20 @@ public class Member extends BaseEntity {
 
     @ManyToMany
     private List<ReviewComment> reviewComments;
+
+    @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Favorite> favorites;  // 찜한 책 목록
+
+    /**
+     * -- 회원탈퇴 직전에 책의 찜 개수를 감소시키는 메소드 --
+     *
+     * @author -- 정재익 --
+     * @since -- 2월 9일 --
+     */
+    @PreRemove
+    public void preRemove() {
+        for (Favorite favorite : favorites) {
+            favorite.getBook().decreaseFavoriteCount();
+        }
+    }
 }

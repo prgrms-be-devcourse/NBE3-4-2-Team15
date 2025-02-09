@@ -20,7 +20,7 @@ import java.util.List;
 public interface BookRepository extends JpaRepository<Book, Long> {
     boolean existsByIsbn(String isbn);
     Book findByIsbn(String isbn);
-    List<Book> findByIsbnIn(List<String> isbns);
+    List<Book> findByIdIn(List<Long> ids);
 
     /**
      * 리포지토리 특정 컬럼의 favoritecount를 수정하는 메소드

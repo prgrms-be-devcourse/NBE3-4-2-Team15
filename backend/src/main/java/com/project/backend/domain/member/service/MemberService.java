@@ -1,5 +1,9 @@
 package com.project.backend.domain.member.service;
 
+import com.project.backend.domain.book.entity.Book;
+import com.project.backend.domain.book.entity.Favorite;
+import com.project.backend.domain.book.repository.BookRepository;
+import com.project.backend.domain.book.repository.FavoriteRepository;
 import com.project.backend.domain.member.dto.LoginDto;
 import com.project.backend.domain.member.dto.MemberDto;
 import com.project.backend.domain.member.dto.MineDto;
@@ -12,6 +16,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 import static com.project.backend.domain.member.exception.MemberErrorCode.*;
 
@@ -26,6 +32,8 @@ import static com.project.backend.domain.member.exception.MemberErrorCode.*;
 @RequiredArgsConstructor
 public class MemberService {
     private final MemberRepository memberRepository;
+    private final BookRepository bookRepository;
+    private final FavoriteRepository favoriteRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtUtil jwtUtil;
 
@@ -119,6 +127,22 @@ public class MemberService {
         if(!passwordEncoder.matches(password, member.getPassword())) {
             throw new MemberException(INCORRECT_PASSWORD);
         }
+
+        List<Favorite> favorites = favoriteRepository.findById_MemberId(member.getId());
+
+        // 찜한 책들의 favoriteCount 감소 후 0이면 삭제
+        for (Favorite favorite : favorites) {
+            Book book = favorite.getBook();
+            boolean shouldDelete = book.decreaseFavoriteCount();
+            bookRepository.save(book);
+
+            if (shouldDelete) {
+                bookRepository.delete(book); // favoriteCount == 0이면 삭제
+            }
+        }
+
+        // 찜 데이터 삭제
+        favoriteRepository.deleteByMemberId(member.getId());
 
         memberRepository.delete(member);
     }

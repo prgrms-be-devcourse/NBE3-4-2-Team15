@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 /**
  * -- 책 엔티티 --
  *
@@ -45,4 +47,21 @@ public class Book {
     private String isbn;
 
     private int favoriteCount;
+
+    @OneToMany(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Favorite> favorites;
+
+    /**
+     * -- 책의 찜 개수를 감소 시키는 메소드 --
+     *
+     * @return -- boolean --
+     * @author -- 정재익 --
+     * @since -- 2월 9일 --
+     */
+    public boolean decreaseFavoriteCount() {
+        if (this.favoriteCount > 0) {
+            this.favoriteCount--;
+        }
+        return this.favoriteCount == 0;
+    }
 }

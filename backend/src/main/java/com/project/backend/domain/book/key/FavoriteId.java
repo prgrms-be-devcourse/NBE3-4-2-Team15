@@ -20,7 +20,8 @@ import java.util.Objects;
 public class FavoriteId implements Serializable {
 
     private Long memberId;
-    private String bookIsbn;
+    private Long bookId;
+
     /**
      * -- 복합키의 고유성을 판별하는 메소드 --
      * <p>
@@ -40,7 +41,7 @@ public class FavoriteId implements Serializable {
         if (o == null || getClass() != o.getClass()) return false;
         FavoriteId that = (FavoriteId) o;
         return Objects.equals(memberId, that.memberId) &&
-                Objects.equals(bookIsbn, that.bookIsbn);
+                Objects.equals(bookId, that.bookId);
     }
 
     /**
@@ -55,6 +56,6 @@ public class FavoriteId implements Serializable {
      */
     @Override
     public int hashCode() {
-        return Objects.hash(memberId, bookIsbn);
+        return Objects.hash(memberId, bookId);
     }
 }

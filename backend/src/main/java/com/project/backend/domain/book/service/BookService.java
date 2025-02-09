@@ -247,7 +247,7 @@ public class BookService {
      *
      * 책을 찜하는 기능 이미 찜을 했을 경우 찜 취소
      * 책이 받은 찜한 수를 Book DB에 최신화
-     * 유저 정보와 책 isbn을 favorite DB에 생성 혹은 삭제
+     * 유저 정보와 책 id을 favorite DB에 생성 혹은 삭제
      * 책의 찜 수가 0이 될 시에 Book DB에서 책 데이터 삭제
      * 책의 정보가 책 DB에 이미 존재 할 시 같은 책을 추가하지 않고 favoritecount만 수정하여 중복 책 등록 방지
      *
@@ -267,7 +267,7 @@ public class BookService {
             saveBooks(bookDto);
         }
 
-        FavoriteId favoriteId = new FavoriteId(member.getId(), bookDto.getIsbn());
+        FavoriteId favoriteId = new FavoriteId(member.getId(), bookRepository.findByIsbn(bookDto.getIsbn()).getId());
 
         if (favoriteRepository.existsById(favoriteId)) {
             favoriteRepository.deleteById(favoriteId);
@@ -288,6 +288,8 @@ public class BookService {
 
         Favorite favorite = Favorite.builder()
                 .id(favoriteId)
+                .book(book)
+                .member(member)
                 .build();
 
         favoriteRepository.save(favorite);
@@ -317,11 +319,11 @@ public class BookService {
 
         List<Favorite> favorites = favoriteRepository.findById_MemberId(memberId);
 
-        List<String> bookIsbns = favorites.stream()
-                .map(fav -> fav.getId().getBookIsbn())
+        List<Long> bookIds = favorites.stream()
+                .map(fav -> fav.getId().getBookId())
                 .toList();
 
-        List<Book> books = bookRepository.findByIsbnIn(bookIsbns);
+        List<Book> books = bookRepository.findByIdIn(bookIds);
 
         return books.stream()
                 .map(book -> new BookDTO(

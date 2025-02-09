@@ -60,6 +60,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/review").permitAll()
                         .requestMatchers(HttpMethod.GET, "/review/{reviewId}/comments").permitAll()
 
+                        // 찜하기, 회원 탈퇴 테스트 용 임시 코드
+                        //.requestMatchers(HttpMethod.POST, "/book/{isbn}/favorite").permitAll()
+                        //.requestMatchers(HttpMethod.DELETE, "members/mine").permitAll()
+
                         // 로그인 및 회원가입은 인증 없이 허용
                         .requestMatchers("/members/login", "/members").permitAll()
 
