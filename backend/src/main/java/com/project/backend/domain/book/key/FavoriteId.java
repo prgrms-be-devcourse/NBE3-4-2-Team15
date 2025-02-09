@@ -2,6 +2,7 @@ package com.project.backend.domain.book.key;
 
 import jakarta.persistence.Embeddable;
 import lombok.AllArgsConstructor;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 import java.io.Serializable;
 import java.util.Objects;
@@ -15,6 +16,7 @@ import java.util.Objects;
 @NoArgsConstructor
 @AllArgsConstructor
 @Embeddable
+@Getter
 public class FavoriteId implements Serializable {
 
     private Long memberId;

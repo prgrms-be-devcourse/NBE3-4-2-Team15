@@ -5,6 +5,8 @@ import com.project.backend.domain.book.key.FavoriteId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * -- 찜 저장소 --
  *
@@ -13,4 +15,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface FavoriteRepository extends JpaRepository<Favorite, FavoriteId> {
+    List<Favorite> findById_MemberId(Long memberId);
+    boolean existsById_MemberId(Long memberId);
 }

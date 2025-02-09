@@ -86,18 +86,18 @@ public class BookController {
         return bookService.favoriteBook(bookDto, customUserDetails.getUsername());
     }
 
-//    /**
-//     * -- 찜한 책 목록을 확인하는 메소드 --
-//     * 로그인한 사용자의 정보를 @AuthenticationPrincipal을 통해 가져와 favoriteRepository에서 찜한 책 목록 조회
-//     *
-//     * @param -- userDetails 로그인한 사용자 정보 --
-//     * @return -- GenericResponse<List<BookSimpleDTO>> --
-//     * @author -- 정재익 --
-//     * @since -- 2월 3일 --
-//     */
-//    @GetMapping("/favorite")
-//    @Operation(summary = "도서 찜 목록")
-//    public GenericResponse<List<BookDTO>> searchFavoriteBooks(@AuthenticationPrincipal UserDetails userDetails) {
-//        return GenericResponse.of(bookService.searchFavoriteBooks(userDetails));
-//    }
+    /**
+     * -- 찜한 책 목록을 확인하는 메소드 --
+     * 로그인한 사용자의 정보를 @AuthenticationPrincipal을 통해 가져와 favoriteRepository에서 찜한 책 목록 조회
+     *
+     * @param -- customUserDetails 로그인한 사용자 정보 --
+     * @return -- GenericResponse<List<BookDTO>> --
+     * @author -- 정재익 --
+     * @since -- 2월 9일 --
+     */
+    @GetMapping("/favorite")
+    @Operation(summary = "도서 찜 목록")
+    public GenericResponse<List<BookDTO>> searchFavoriteBooks(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return GenericResponse.of(bookService.searchFavoriteBooks(customUserDetails.getUsername()));
+    }
 }

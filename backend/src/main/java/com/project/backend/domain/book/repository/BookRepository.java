@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 /**
  * -- 책 저장소 --
  *
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Repository;
 public interface BookRepository extends JpaRepository<Book, Long> {
     boolean existsByIsbn(String isbn);
     Book findByIsbn(String isbn);
+    List<Book> findByIsbnIn(List<String> isbns);
 
     /**
      * 리포지토리 특정 컬럼의 favoritecount를 수정하는 메소드

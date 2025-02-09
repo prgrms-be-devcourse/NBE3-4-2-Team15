@@ -269,7 +269,6 @@ public class BookService {
 
         FavoriteId favoriteId = new FavoriteId(member.getId(), bookDto.getIsbn());
 
-
         if (favoriteRepository.existsById(favoriteId)) {
             favoriteRepository.deleteById(favoriteId);
 
@@ -280,6 +279,7 @@ public class BookService {
             } else {
                 bookRepository.updateFavoriteCount(book, -1);
             }
+
             return GenericResponse.of("찜이 취소되었습니다.");
         }
 
@@ -293,36 +293,45 @@ public class BookService {
         favoriteRepository.save(favorite);
         return GenericResponse.of("해당 도서를 찜 목록에 추가하였습니다.");
     }
-}
 
-/**
- * -- 찜한 책 목록을 확인하는 메소드 --
- * 1. 현재 접속 정보를 바탕으로 멤버ID 추출
- * 2. favoriteRepository에서 해당 멤버가 찜한 책 목록을 반환받는다
- * 3. favorite 리스트를 BookSimpleDto로 변환한 뒤 반환한다.
- *
- * @param -- userDetail --
- * @return -- List<BookSimpleDTO> --
- * @author -- 정재익 --
- * @since -- 2월 3일 --
- */
-//    public List<BookDTO> searchFavoriteBooks(@AuthenticationPrincipal UserDetails userDetails) {
-//        CustomUserDetails customUserDetails = (CustomUserDetails) userDetails;
-//        Long memberId = customUserDetails.getId();
-//        String memberUsername = userDetails.getUsername();
-//
-//        if (!memberRepository.existsById(memberId)) {
-//            throw new MemberException(MemberErrorCode.NON_EXISTING_USERNAME);
-//        }
-//
-//        List<Favorite> favorites = favoriteRepository.findById_MemberUsername(memberUsername);
-//
-//        if (favorites.isEmpty()) {
-//            throw new BookException(BookErrorCode.NO_FAVORITE_BOOKS);
-//        }
-//
-//        return favorites.stream()
-//                .map(favorite -> modelMapper.map(favorite.getBook(), BookDTO.class))
-//                .collect(Collectors.toList());
-//    }
-//}
+    /**
+     * -- 찜한 책 목록을 확인하는 메소드 --
+     * favoriteRepository에서 해당 멤버가 찜한 책 목록을 반환받는다
+     * favorite 리스트를 BookDto로 변환한 뒤 반환한다.
+     *
+     * @param -- username --
+     * @return -- List<BookDTO> --
+     * @author -- 정재익 --
+     * @since -- 2월 9일 --
+     */
+    public List<BookDTO> searchFavoriteBooks(String username) {
+
+        Member member = memberRepository.findByUsername(username)
+                .orElseThrow(() -> new MemberException(MemberErrorCode.NON_EXISTING_USERNAME));
+
+        Long memberId = member.getId();
+
+        if (!favoriteRepository.existsById_MemberId(memberId)) {
+            throw new BookException(BookErrorCode.NO_FAVORITE_BOOKS);
+        }
+
+        List<Favorite> favorites = favoriteRepository.findById_MemberId(memberId);
+
+        List<String> bookIsbns = favorites.stream()
+                .map(fav -> fav.getId().getBookIsbn())
+                .toList();
+
+        List<Book> books = bookRepository.findByIsbnIn(bookIsbns);
+
+        return books.stream()
+                .map(book -> new BookDTO(
+                        book.getTitle(),
+                        book.getAuthor(),
+                        book.getDescription(),
+                        book.getIsbn(),
+                        book.getImage(),
+                        book.getFavoriteCount()
+                ))
+                .toList();
+    }
+}
