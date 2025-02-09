@@ -50,7 +50,7 @@ public class Member extends BaseEntity {
     private List<ReviewComment> reviewComments;
 
     @OneToMany(mappedBy = "member", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Favorite> favorites;  // 찜한 책 목록
+    private List<Favorite> favorites;
 
     /**
      * -- 회원탈퇴 직전에 책의 찜 개수를 감소시키는 메소드 --
