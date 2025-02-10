@@ -2,13 +2,13 @@ package com.project.backend.domain.book.controller;
 
 import com.project.backend.domain.book.dto.BookDTO;
 import com.project.backend.domain.book.service.BookService;
-import com.project.backend.global.authority.CustomUserDetails;
 import com.project.backend.global.response.GenericResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.data.domain.Page;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -37,21 +37,20 @@ public class BookController {
      * @param -- searchBy(title = 제목검색, author = 작가검색) --
      * @param -- page 시작 페이지 --
      * @param -- size 한 페이지에 보여주는 책 수량 --
-     * @return -- GenericResponse<List<BookDTO>> --
+     * @return -- ResponseEntity<GenericResponse<Page<BookDTO>>> --
      * @author -- 정재익 --
-     * @since -- 2월 7일 --
+     * @since -- 2월 10일 --
      */
     @GetMapping
     @Operation(summary = "도서 검색")
-    public GenericResponse<List<BookDTO>> searchBooks(
+    public ResponseEntity<GenericResponse<Page<BookDTO>>> searchBooks(
             @RequestParam(name = "query") String query,
             @RequestParam(name = "searchBy", defaultValue = "title") String searchBy,
             @RequestParam(name = "page", defaultValue = "1") int page,
             @RequestParam(name = "size", defaultValue = "10") int size) {
 
-        List<BookDTO> books = bookService.searchBooks(query, searchBy.equalsIgnoreCase("author"), page, size);
-
-        return GenericResponse.of(books);
+        Page<BookDTO> books = bookService.searchBooks(query, searchBy.equalsIgnoreCase("author"), page, searchBy.equalsIgnoreCase("author") ? size : size / 2);
+        return ResponseEntity.ok(GenericResponse.of(books));
     }
 
     /**
@@ -59,14 +58,14 @@ public class BookController {
      * 책의 상세 정보 조회
      *
      * @param -- isbn --
-     * @return -- GenericResponse<BookDTO> --
+     * @return -- ResponseEntity<GenericResponse<BookDTO>> --
      * @author -- 정재익 --
-     * @since -- 2월 5일 --
+     * @since -- 2월 10일 --
      */
     @GetMapping("/{isbn}")
     @Operation(summary = "도서 상세 검색")
-    public GenericResponse<BookDTO> searchBookDetail(@PathVariable(name = "isbn") String isbn) {
-        return GenericResponse.of(bookService.searchBookDetail(isbn));
+    public ResponseEntity<GenericResponse<BookDTO>> searchBookDetail(@PathVariable(name = "isbn") String isbn) {
+        return ResponseEntity.ok(GenericResponse.of(bookService.searchBookDetail(isbn)));
     }
 
     /**
