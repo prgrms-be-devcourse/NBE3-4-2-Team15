@@ -82,9 +82,9 @@ public class BookController {
      */
     @PostMapping("/{isbn}/favorite")
     @Operation(summary = "도서 찜 하기")
-    public GenericResponse<String> favoriteBook(@PathVariable(name = "isbn") String isbn, @RequestBody BookDTO bookDto, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    public ResponseEntity<GenericResponse<String>> favoriteBook(@PathVariable(name = "isbn") String isbn, @RequestBody BookDTO bookDto, @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         bookDto.setIsbn(isbn);
-        return bookService.favoriteBook(bookDto, customUserDetails.getUsername());
+        return ResponseEntity.ok(bookService.favoriteBook(bookDto, customUserDetails.getUsername()));
     }
 
     /**
@@ -98,7 +98,7 @@ public class BookController {
      */
     @GetMapping("/favorite")
     @Operation(summary = "도서 찜 목록")
-    public GenericResponse<List<BookDTO>> searchFavoriteBooks(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return GenericResponse.of(bookService.searchFavoriteBooks(customUserDetails.getUsername()));
+    public ResponseEntity<GenericResponse<List<BookDTO>>> searchFavoriteBooks(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return ResponseEntity.ok(GenericResponse.of(bookService.searchFavoriteBooks(customUserDetails.getUsername())));
     }
 }
